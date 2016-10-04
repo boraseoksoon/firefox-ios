@@ -40,14 +40,14 @@ struct ASOnyxPing {
     /// - parameter source:         [TOP_SITES | HIGHLIGHTS | ACTIVITY_FEED]
     /// - parameter actionPosition: The zero-based index of the component tapped. For example, if the second 
     ///                             item in the highlights row was tapped, this value would be 1.
-    /// - parameter locale:         Device locale
-    /// - parameter action:         Event action
+    /// - parameter provider:       (optional) Indicates share provider if applicable
     ///
     /// - returns: Onyx event ping for Activity Stream events
     static func buildEventPing(event: ASEventField, page: ASPageField, source: ASSourceField,
-                              actionPosition: Int, locale: NSLocale, action: String) -> EventPing {
+                               actionPosition: Int, provider: String? = nil) -> EventPing {
         return EventPing(event: event.rawValue, page: page.rawValue, source: source.rawValue,
-                         actionPosition: actionPosition, locale: locale, action: action)
+                         actionPosition: actionPosition, locale: NSLocale.currentLocale(),
+                         action: "activity_stream_event", provider: provider)
     }
 
     /// Builds an Onyx ping with strong types for Activity Stream values for session pings.
@@ -56,17 +56,18 @@ struct ASOnyxPing {
     /// - parameter loadReason:      [newtab | focus]
     /// - parameter unloadReason:    [navigation | unfocus | refresh]
     /// - parameter loadLatency:
-    /// - parameter locale:          Device locale
     /// - parameter page:            [NEW_TAB | TIMELINE_ALL]
-    /// - parameter action:          Session action
     /// - parameter sessionDuration: Duration of user's session
     ///
     /// - returns: Onyx session ping for Activity Stream
     static func buildSessionPing(url: NSURL?, loadReason: ASLoadReasonField?,
-                                 unloadReason: ASLoadReasonField, loadLatency: Int?, locale: NSLocale,
-                                 page: ASPageField?, action: String?, sessionDuration: Int) -> SessionPing {
+                                 unloadReason: ASLoadReasonField, loadLatency: Int?, page: ASPageField?,
+                                 sessionDuration: Int) -> SessionPing {
         return SessionPing(url: url, loadReason: loadReason?.rawValue, unloadReason: loadReason?.rawValue,
-                           loadLatency: loadLatency, locale: locale, page: page?.rawValue, action: action,
-                           sessionDuration: sessionDuration)
+                           loadLatency: loadLatency, locale: NSLocale.currentLocale(), page: page?.rawValue,
+                           action: "activity_stream_session", sessionDuration: sessionDuration)
     }
 }
+
+let stagingOnyxConfiguration = OnyxClientConfiguration(serverURL: "https://onyx_tiles.stage.mozaws.net".asURL!, version: 3)
+let onyxClient = OnyxClient(configuration: stagingOnyxConfiguration)
