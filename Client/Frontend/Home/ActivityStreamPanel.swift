@@ -187,7 +187,6 @@ extension ActivityStreamPanel {
             return
         } 
     }
-
 }
 
 // MARK: - Tableview Data Source
@@ -246,10 +245,14 @@ extension ActivityStreamPanel {
     }
 
     private func reloadRecentHistory() {
-        self.profile.recommendations.getHighlights().uponQueue(dispatch_get_main_queue()) { result in
+        fetchHighlights().uponQueue(dispatch_get_main_queue()) { result in
             self.history = result.successValue?.asArray() ?? self.history
             self.tableView.reloadData()
         }
+    }
+
+    private func fetchHighlights() -> Deferred<Maybe<Cursor<Site>>> {
+        return self.profile.recommendations.getHighlights()
     }
 
     private func reloadTopSites() {
@@ -324,13 +327,13 @@ extension ActivityStreamPanel {
             let touchPoint = longPressGestureRecognizer.locationInView(self.view)
             if let indexPath = tableView.indexPathForRowAtPoint(touchPoint) {
                 if Section(indexPath.section) == .Highlights {
-                    presentContextMenu(history[indexPath.row])
+                    presentContextMenu(history[indexPath.row], indexPath: indexPath)
                 }
             }
         }
     }
 
-    private func presentContextMenu(site: Site) {
+    private func presentContextMenu(site: Site, indexPath: NSIndexPath) {
         let bookmarkAction = ActionOverlayTableViewAction(title: Strings.BookmarkContextMenuTitle, iconString: "action_bookmark", handler: { action in
             let shareItem = ShareItem(url: site.url, title: site.title, favicon: site.icon)
             self.profile.bookmarks.shareItem(shareItem)
@@ -355,7 +358,18 @@ extension ActivityStreamPanel {
             }
         })
 
-        let contextMenu = ActionOverlayTableViewController(site: site, actions: [bookmarkAction, deleteFromHistoryAction, shareAction])
+        let dismissAction = ActionOverlayTableViewAction(title: Strings.DismissContextMenuTitle, iconString: "action_close", handler: { action in
+            self.profile.recommendations.removeHighlightForURL(site.url).uponQueue(dispatch_get_main_queue()) { _ in
+                    self.history.removeAtIndex(indexPath.row)
+                    self.tableView.beginUpdates()
+                    self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Right)
+                    self.tableView.endUpdates()
+
+                    self.tableView.reloadData()
+                }
+        })
+
+        let contextMenu = ActionOverlayTableViewController(site: site, actions: [bookmarkAction, shareAction, dismissAction, deleteFromHistoryAction])
         contextMenu.modalPresentationStyle = .OverFullScreen
         contextMenu.modalTransitionStyle = .CrossDissolve
         self.presentViewController(contextMenu, animated: true, completion: nil)
