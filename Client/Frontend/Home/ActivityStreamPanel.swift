@@ -183,7 +183,7 @@ extension ActivityStreamPanel {
         case .Highlights:
             let eventPing = ASOnyxPing.buildEventPing(.click, page: .newTab, source: .highlights,
                                                       actionPosition: indexPath.row)
-            onyxClient.sendPing(eventPing, toEndpoint: .activityStream)
+            OnyxTelemetry.sharedClient.sendPing(eventPing, toEndpoint: .activityStream)
             let site = self.history[indexPath.row]
             showSiteWithURLHandler(NSURL(string:site.url)!)
         case .TopSites:
@@ -277,7 +277,7 @@ extension ActivityStreamPanel {
             self.topSitesManager.urlPressedHandler = { [unowned self] url, indexPath in
                 let eventPing = ASOnyxPing.buildEventPing(.click, page: .newTab, source: .topSites,
                                                           actionPosition: indexPath.item)
-                onyxClient.sendPing(eventPing, toEndpoint: .activityStream)
+                OnyxTelemetry.sharedClient.sendPing(eventPing, toEndpoint: .activityStream)
                 self.showSiteWithURLHandler(url)
             }
             self.topSitesManager.presentActionMenuHandler = { [unowned self] alert in
@@ -286,7 +286,7 @@ extension ActivityStreamPanel {
             self.topSitesManager.deleteItemHandler = { [unowned self] url, indexPath in
                 let eventPing = ASOnyxPing.buildEventPing(.delete, page: .newTab, source: .topSites,
                                           actionPosition: indexPath.item)
-                onyxClient.sendPing(eventPing, toEndpoint: .activityStream)
+                OnyxTelemetry.sharedClient.sendPing(eventPing, toEndpoint: .activityStream)
                 self.hideURLFromTopSites(url)
             }
             self.tableView.reloadData()
@@ -356,7 +356,7 @@ extension ActivityStreamPanel {
         let deleteFromHistoryAction = ActionOverlayTableViewAction(title: Strings.DeleteFromHistoryContextMenuTitle, iconString: "action_delete", handler: { action in
             let eventPing = ASOnyxPing.buildEventPing(.delete, page: .newTab, source: .highlights,
                           actionPosition: indexPath.row)
-            onyxClient.sendPing(eventPing, toEndpoint: .activityStream)
+            OnyxTelemetry.sharedClient.sendPing(eventPing, toEndpoint: .activityStream)
             self.profile.history.removeHistoryForURL(site.url)
         })
 
@@ -366,7 +366,7 @@ extension ActivityStreamPanel {
                 let controller = helper.createActivityViewController { completed, activityType in
                     let eventPing = ASOnyxPing.buildEventPing(.share, page: .newTab, source: .highlights,
                         actionPosition: indexPath.row, provider: activityType)
-                    onyxClient.sendPing(eventPing, toEndpoint: .activityStream)
+                    OnyxTelemetry.sharedClient.sendPing(eventPing, toEndpoint: .activityStream)
                 }
                 self.presentViewController(controller, animated: true, completion: nil)
             }
